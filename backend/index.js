@@ -8,6 +8,17 @@ app.use(cors());
 
 app.use(bodyParser.json());
 
+const checkAccess = (requiredRole) => (req, res, next) => {
+  // Replace this with your actual token verification and role extraction logic
+  const userRole = req.headers['x-user-role'];
+
+  if (userRole === requiredRole) {
+    next();
+  } else {
+    res.status(403).json({ error: 'Forbidden' });
+  }
+};
+
 //////////////////GETERS//////////////////////////////////
 
 app.get('/getAllEmployees', (req, res) =>{
@@ -258,7 +269,7 @@ app.get('/checks/findByNumber/:checkNumber', (req, res) =>{
 
 ////////////////ADD FUNCTION//////////////////////////////////////// 
 
-app.post('/employee/addEmployee', (req, res) =>{
+app.post('/employee/addEmployee', checkAccess('manager'), (req, res) =>{
 
 console.log(req.body)
  const sql = "INSERT INTO employee (`id_employee`, `empl_surname`, `empl_name`, `empl_patronymic`, `empl_role`, `salary`, `date_of_birth`, `date_of_start`, `phone_number`, `city`, `street`, `zip_code`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
