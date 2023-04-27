@@ -43,6 +43,38 @@ export default function Customers() {
         .catch(err => console.log(err))
       }
 
+      const findByPercent = (e) => {
+        e.preventDefault();
+        const percent = document.getElementById('searchByPercent').value;
+        console.log(percent);
+
+        try {
+          axios.get(`http://localhost:3001/customers/findByPercent/${percent}`)
+          .then(res => setCustomers(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      document.getElementById('searchByPercent').value = ''
+      }
+
+
+      const findBySurname = (e) => {
+        e.preventDefault();
+        var customerSurname = document.getElementById('searchByCustomerSurname').value;
+    
+        console.log(customerSurname);
+
+        try {
+          axios.get(`http://localhost:3001/customers/searchByCustomerSurname/${customerSurname}`)
+          .then(res => setCustomers(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      document.getElementById('searchByCustomerSurname').value = ''
+      }
+
 
     if(customers) {
 
@@ -58,6 +90,18 @@ export default function Customers() {
                 <button type="button" onClick={showAll} className="btn btn-info btn-lg mt-3 btn-block">Show All</button>
                 <button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Add</button>
                 <button type="button" onClick={sortByName} className="btn btn-info btn-lg mt-3 btn-block ms-3">Sort by surname</button>
+            </div>
+
+            <div className="input-group mb-3 mt-3 finder">
+              <input type="number" min='1' max='100' className="form-control" id='searchByPercent' placeholder="Search by Percents" />
+              <div className="input-group-append">
+                <button className="btn btn-outline-secondary" type="button" onClick={findByPercent}>Search</button>
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-center mt-3">
+                <input type="text" className="form-control" id='searchByCustomerSurname' placeholder="Search by Customer Surname"/>  
+                <button className="btn btn-outline-secondary" type="button" onClick={findBySurname}>Search</button>
             </div>
             
             <table className="table mt-3 table-striped">

@@ -18,7 +18,7 @@ export default function AddCategory() {
             console.log(err.response.data)
         }
 
-      }
+    }
 
     return (
         <div className='form mt-4'> 

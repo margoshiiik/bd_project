@@ -83,10 +83,10 @@ export default function Employee() {
                 <button type="button" onClick={showCahiers} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Cashiers</button>
             </div>
 
-            <div class="input-group mb-3 mt-3 finder">
-              <input type="text" class="form-control" id='searchSurname' placeholder="Search by Surname" />
-              <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="button" onClick={findBySurname}>Search</button>
+            <div className="input-group mb-3 mt-3 finder">
+              <input type="text" className="form-control" id='searchSurname' placeholder="Search by Surname" />
+              <div className="input-group-append">
+                <button className="btn btn-outline-secondary" type="button" onClick={findBySurname}>Search</button>
               </div>
             </div>
 

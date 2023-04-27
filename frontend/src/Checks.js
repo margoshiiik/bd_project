@@ -8,6 +8,13 @@ export default function Checks() {
     const [checks, setChecks] = useState(null); 
     const [addIsClicked, setAddisClicked] = useState(false)
 
+    const showAll = () => {
+        axios.get('http://localhost:3001/getAllCheck')
+        .then(res => setChecks(res.data))
+        .catch(err => console.log(err))
+    }
+
+
     const deleteCheck = (e) => {
         e.preventDefault();
         const check_number = e.target.name;
@@ -25,11 +32,22 @@ export default function Checks() {
       }
       }
 
-    useEffect(() => {
-        axios.get('http://localhost:3001/getAllCheck')
-        .then(res => setChecks(res.data))
-        .catch(err => console.log(err))
-    })
+    
+
+    const findByNumber = (e) => {
+        e.preventDefault();
+        var checkNumber = document.getElementById('findByNumber').value;
+    
+        console.log(checkNumber);
+
+        try {
+          axios.get(`http://localhost:3001/checks/findByNumber/${checkNumber}`)
+          .then(res => setChecks(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      }
 
     if(checks) {
     
@@ -40,6 +58,12 @@ export default function Checks() {
             {(addIsClicked) ? <AddCheck /> : null }
             <div className="d-flex justify-content-around"><button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 btn-block">Add</button></div>
             
+
+            <div className="d-flex justify-content-center mt-3">
+                <input type="text" className="form-control" id='findByNumber' placeholder="Search by Check Number"/>  
+                <button className="btn btn-outline-secondary" type="button" onClick={findByNumber}>Search</button>
+            </div>
+
             <table className="table mt-3 table-striped">
             <thead>
                 <tr>
@@ -69,7 +93,5 @@ export default function Checks() {
     ) 
 
                 }
-                else return (
-                    <h1>Fetching the data</h1>
-                )
+                else showAll(); 
 }

@@ -115,7 +115,40 @@ app.get('/productsInShop/getSortedProductsInShopQuantity', (req, res) =>{
 })
 
 app.get('/productsInShop/getSortedProductsInShopName', (req, res) =>{
-  const sql = "SELECT * FROM store_product ORDER BY products_name ASC;"
+  const sql = "SELECT * FROM Product p JOIN Store_Product sp ON p.id_product = sp.id_product ORDER BY product_name;"
+  db.query(sql, (err, data) => {
+    if(err) return res.json(err)
+    return res.json(data)
+  })
+})
+
+
+app.get('/productsInShop/onSaleByQuantity', (req, res) =>{
+  const sql = "SELECT * FROM store_product sp JOIN product p ON p.id_product = sp.id_product WHERE promotional_product = '1' ORDER BY products_number"
+  db.query(sql, (err, data) => {
+    if(err) return res.json(err)
+    return res.json(data)
+  })
+})
+
+app.get('/productsInShop/onSaleByName', (req, res) =>{
+  const sql = "SELECT * FROM store_product sp JOIN product p ON p.id_product = sp.id_product WHERE promotional_product = '1' ORDER BY product_name";
+  db.query(sql, (err, data) => {
+    if(err) return res.json(err)
+    return res.json(data)
+  })
+})
+
+app.get('/productsInShop/fullPriceByQuantity', (req, res) =>{
+  const sql = "SELECT * FROM store_product WHERE promotional_product = '0' ORDER BY products_number";
+  db.query(sql, (err, data) => {
+    if(err) return res.json(err)
+    return res.json(data)
+  })
+})
+
+app.get('/productsInShop/fullPriceByName', (req, res) =>{
+  const sql = "SELECT * FROM store_product sp JOIN product p ON p.id_product = sp.id_product WHERE promotional_product = '0' ORDER BY product_name;";
   db.query(sql, (err, data) => {
     if(err) return res.json(err)
     return res.json(data)
@@ -141,13 +174,95 @@ app.get('/employee/findBySurname/:empl_surname', (req, res) =>{
 })
 
 
+app.get('/customers/findByPercent/:percent', (req, res) =>{
+
+  console.log(req.params.percent)
+
+  const q = "SELECT * FROM customer_card WHERE percent = (?) ORDER BY cust_surname"
+
+  db.query(q, [req.params.percent], (err, data)=>{
+      if(err) return res.status(500).json(err);
+      return res.json(data)
+  }) 
+
+})
+
+app.get('/products/findByCategory/:category', (req, res) =>{
+
+  console.log(req.params.category)
+
+  const q = "SELECT * FROM product WHERE category_number = (?) ORDER BY product_name"
+
+  db.query(q, [req.params.category], (err, data)=>{
+      if(err) return res.status(500).json(err);
+      return res.json(data)
+  }) 
+
+})
+
+app.get('/customers/searchByCustomerSurname/:customerSurname', (req, res) =>{
+
+  console.log(req.params.customerSurname)
+
+  const q = "SELECT * FROM customer_card WHERE cust_surname = (?) ORDER BY cust_surname"
+
+  db.query(q, [req.params.customerSurname], (err, data)=>{
+      if(err) return res.status(500).json(err);
+      return res.json(data)
+  }) 
+
+})
+
+
+app.get('/productsinShop/searchByUPC/:upc', (req, res) =>{
+
+  console.log(req.params.upc)
+
+  const q = "SELECT * FROM store_product WHERE UPC = (?)"
+
+  db.query(q, [req.params.upc], (err, data)=>{
+      if(err) return res.status(500).json(err);
+      return res.json(data)
+  }) 
+
+})
+
+
+app.get('/products/searchByProductName/:productName', (req, res) =>{
+
+  console.log(req.params.productName)
+
+  const q = "SELECT * FROM product WHERE product_name = (?)"
+
+  db.query(q, [req.params.productName], (err, data)=>{
+      if(err) return res.status(500).json(err);
+      return res.json(data)
+  }) 
+
+})
+
+
+app.get('/checks/findByNumber/:checkNumber', (req, res) =>{
+
+  console.log(req.params.checkNumber)
+
+  const q = "SELECT * FROM `check` WHERE check_number = (?)"
+
+  db.query(q, [req.params.checkNumber], (err, data)=>{
+      if(err) return res.status(500).json(err);
+      return res.json(data)
+  }) 
+
+})
+
+
 ////////////////ADD FUNCTION//////////////////////////////////////// 
 
 app.post('/employee/addEmployee', (req, res) =>{
 
- // console.log(req.body)
-  const sql = "INSERT INTO employee (`id_employee`, `empl_surname`, `empl_name`, `empl_patronymic`, `empl_role`, `salary`, `date_of_birth`, `date_of_start`, `phone_number`, `city`, `street`, `zip_code`) VALUES (?);"
-  const values = [req.body.id_employee, req.body.surname, req.body.name, req.body.patronymic, req.body.role, req.body.employeeSalary, req.body.birthday, req.body.dateOfStart, req.body.phone_number, req.body.employeeCity, req.body.employeeStreet, req.body.employeeZip];
+console.log(req.body)
+ const sql = "INSERT INTO employee (`id_employee`, `empl_surname`, `empl_name`, `empl_patronymic`, `empl_role`, `salary`, `date_of_birth`, `date_of_start`, `phone_number`, `city`, `street`, `zip_code`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+  const values = [req.body.id_employee, req.body.empl_surname, req.body.empl_name, req.body.empl_patronymic, req.body.empl_role, req.body.salary, req.body.date_of_birth, req.body.date_of_start, req.body.phone_number, req.body.city, req.body.street, req.body.zip_code];
 
   console.log(values);
   db.query(sql, values, (err, data) => {
@@ -167,6 +282,57 @@ app.post('/category/addCategory', (req, res) =>{
     return res.status(200).json("category has been added")
   })
 })
+
+app.post('/products/addProduct', (req, res) =>{
+
+  console.log(req.body)
+
+  const sql = "INSERT INTO product (`id_product`, `category_number`, `product_name`, `characteristics`) VALUES (?, ?, ?, ?);"
+  const values = [req.body.id_product, req.body.category_number, req.body.product_name, req.body.characteristics]
+  db.query(sql, values, (err, data) => {
+    if(err) return res.status(500).json(err); 
+    return res.status(200).json("product has been added")
+  })
+})
+
+app.post('/productsInShop/addProductInShop', (req, res) =>{
+
+  console.log(req.body)
+
+  const sql = "INSERT INTO store_product (`UPC`, `id_product`, `selling_price`, `products_number`, `promotional_product`) VALUES (?, ?, ?, ?, ?);"
+  const values = [req.body.upc, req.body.product_id, req.body.price, req.body.quantity, req.body.isPromotional]
+  db.query(sql, values, (err, data) => {
+    if(err) return res.status(500).json(err); 
+    return res.status(200).json("product has been added")
+  })
+})
+
+
+app.post('/customers/addCustomer', (req, res) =>{
+
+  console.log(req.body)
+
+  const sql = "INSERT INTO customer_card (`card_number`, `cust_surname`, `cust_name`, `cust_patronymic`, `phone_number`, `city`, `street`, `zip_code`, `percent`) VALUES (?, ?, ?, ?, ?, ?,?,?,?);"
+  const values = [req.body.card_number, req.body.cust_surname, req.body.cust_name, req.body.cust_patronymic, req.body.phone_number, req.body.city, req.body.street, req.body.zip_code, req.body.percent]
+  db.query(sql, values, (err, data) => {
+    if(err) return res.status(500).json(err); 
+    return res.status(200).json("customer has been added")
+  })
+})
+
+
+app.post('/checks/addCheck', (req, res) =>{
+
+  console.log(req.body)
+
+  const sql = "INSERT INTO `check` (`check_number`, `id_employee`, `card_number`, `sum_total`, `vat`) VALUES (?, ?, ?, ?, ?);"
+  const values = [req.body.check_number, req.body.id_employee, req.body.card_number, req.body.sum_total, req.body.vat]
+  db.query(sql, values, (err, data) => {
+    if(err) return res.status(500).json(err); 
+    return res.status(200).json("customer has been added")
+  })
+})
+
 
 ///////////////////////DELETE FUNCTIONS/////////////////////
 

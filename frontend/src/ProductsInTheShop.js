@@ -56,6 +56,70 @@ export default function ProductsInTheShop() {
       }
       }
 
+      const onSaleByQuantity = (e) => {
+        e.preventDefault();
+        
+        try {
+          axios.get(`http://localhost:3001/productsInShop/onSaleByQuantity`)
+          .then(res => setProductsIntheShop(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      }
+
+      const onSaleByName = (e) => {
+        e.preventDefault();
+        
+        try {
+          axios.get(`http://localhost:3001/productsInShop/onSaleByName`)
+          .then(res => setProductsIntheShop(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      }
+
+      const fullPriceByQuantity = (e) => {
+        e.preventDefault();
+        
+        try {
+          axios.get(`http://localhost:3001/productsInShop/fullPriceByQuantity`)
+          .then(res => setProductsIntheShop(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      }
+
+      const fullPriceByName = (e) => {
+        e.preventDefault();
+        
+        try {
+          axios.get(`http://localhost:3001/productsInShop/fullPriceByName`)
+          .then(res => setProductsIntheShop(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      }
+      
+
+      const searchByUPC = (e) => {
+        e.preventDefault();
+        var upc = document.getElementById('searchByUPC').value;
+
+        try {
+          axios.get(`http://localhost:3001/productsinShop/searchByUPC/${upc}`)
+          .then(res => setProductsIntheShop(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      document.getElementById('searchByUPC').value = ''
+
+      }
+
    
     
     if(productsIntheShop) return(
@@ -67,11 +131,20 @@ export default function ProductsInTheShop() {
             <div className="menu mt-3 d-flex justify-content-center">
                 <button type="button" onClick={showAll} className="btn btn-info btn-lg mt-3 btn-block">Show All</button>
                 <button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Add</button>
-                {/* <button type="button" onClick={sortByName} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Sort by Name</button> */}
+                <button type="button" onClick={sortByName} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Sort by Name</button> 
                 <button type="button" onClick={sortByQuantity} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Sort by Quantity</button>
+                <button type="button" onClick={onSaleByQuantity} className="btn btn-info btn-lg mt-3 ms-3 btn-block">On Sale by Quantity</button>
+                <button type="button" onClick={onSaleByName} className="btn btn-info btn-lg mt-3 ms-3 btn-block">On Sale By Name</button>
+                <button type="button" onClick={fullPriceByQuantity} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Full Price by Quantity</button>
+                <button type="button" onClick={fullPriceByName} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Full Price by Name</button> 
             </div>
 
-            
+            <div className="input-group mb-3 mt-3 finder">
+              <input type="text" className="form-control" id='searchByUPC' placeholder="Search by UPC" />
+              <div className="input-group-append">
+                <button className="btn btn-outline-secondary" type="button" onClick={searchByUPC}>Search</button>
+              </div>
+            </div>
 
             <table className="table mt-3 table-striped">
             <thead>

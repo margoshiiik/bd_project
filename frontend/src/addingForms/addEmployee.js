@@ -29,13 +29,24 @@ export default function AddEmployee() {
         const employeeCity = document.getElementById('employeeCity').value;
         const employeeStreet = document.getElementById('employeeStreet').value;
         const employeeZip = document.getElementById('employeeZip').value;
-        const values = {id_employee: id_employee, surname: surname, name:name, patronymic: patronymic, birthday: birthday, dateOfStart: dateOfStart, 
-            role: role, employeeSalary: employeeSalary, phone_number: phone_number, employeeCity: employeeCity, employeeStreet:employeeStreet, employeeZip: employeeZip};
+        const values = {
+            id_employee: id_employee,
+            empl_surname: surname,
+            empl_name: name,
+            empl_patronymic: patronymic,
+            empl_role: role,
+            salary: employeeSalary,
+            date_of_birth: birthday,
+            date_of_start: dateOfStart,
+            phone_number: phone_number,
+            city: employeeCity,
+            street: employeeStreet,
+            zip_code: employeeZip
+          };
         console.log(values)
         
         try {
             axios.post(`http://localhost:3001/employee/addEmployee`, values);
-           // document.getElementById('categoryName').value = '';
         } catch(err){
             console.log(err)
         }
@@ -46,9 +57,6 @@ if(employees !== null) {
     return (
         <div className='form'> 
         <form>
- 
-            
-            {/* <input type="text" className="form-control mt-3" placeholder="User ID" required/> */}
             
             
             <input type="text" className="form-control mt-3" id='employeeSurname' placeholder="Surname" required/>

@@ -6,7 +6,15 @@ import AddProduct from "./addingForms/addProduct";
 export default function Products() {
 
     const [products, setProducts] = useState(null); 
+    const [categories, setCategories] = useState(null); 
     const [addIsClicked, setAddisClicked] = useState(false)
+
+    useEffect(() => {
+        axios.get('http://localhost:3001/getAllCategories')
+        .then(res => setCategories(res.data))
+        .catch(err => console.log(err))
+    })
+
 
     const deleteProduct = (e) => {
         e.preventDefault();
@@ -43,9 +51,46 @@ export default function Products() {
       }
       }
 
+      
+
+      const findByProductName = (e) => {
+        e.preventDefault();
+        var productName = document.getElementById('searchByProductName').value;
+    
+        console.log(productName);
+
+        try {
+          axios.get(`http://localhost:3001/products/searchByProductName/${productName}`)
+          .then(res => setProducts(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      document.getElementById('searchByProductName').value = ''
+
+      }
+
+      const findByCategory = (e) => {
+        e.preventDefault();
+        var select = document.getElementById('selectCategory');
+        var category = select.options[select.selectedIndex].value;
+        
+        console.log(category);
+
+        try {
+          axios.get(`http://localhost:3001/products/findByCategory/${category}`)
+          .then(res => setProducts(res.data))
+          .catch(err => console.log(err))
+      } catch(err){
+          console.log(err.response.data)
+      }
+      document.getElementById('selectCategory').value = ''
+
+      }
+
 
     
-    if(products) return(
+    if(products && categories) return(
         
         <div>
             <Menu />
@@ -55,6 +100,23 @@ export default function Products() {
                 <button type="button" onClick={showAll} className="btn btn-info btn-lg mt-3 btn-block">Show All</button>
                 <button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Add</button>
                 <button type="button" onClick={sortByName} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Sort by Name</button>
+                
+            </div>
+
+            <div className="d-flex justify-content-center mt-3">
+                <select className="form-select mt-3" id="selectCategory">
+                            <option defaultValue>Select Product</option>
+                            {categories.map(item => 
+                                <option key={item.category_number} value={item.category_number}>{item.category_name}</option>
+                            )}
+                </select>
+                <button className="btn btn-outline-secondary" type="button" onClick={findByCategory}>Search</button>
+            </div>
+
+
+            <div className="d-flex justify-content-center mt-3">
+                <input type="text" className="form-control" id='searchByProductName' placeholder="Search by Product Name"/>  
+                <button className="btn btn-outline-secondary" type="button" onClick={findByProductName}>Search</button>
             </div>
 
             <table className="table mt-3 table-striped">
