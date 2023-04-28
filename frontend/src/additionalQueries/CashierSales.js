@@ -50,8 +50,8 @@ function CashierSales() {
           <tbody>
             {cashierSales.map((cashier, index) => (
               <tr key={index}>
-                <td>{cashier.name}</td>
-                <td>{cashier.surname}</td>
+                <td>{cashier.empl_name}</td>
+                <td>{cashier.empl_surname}</td>
                 <td>{cashier.total_sales}</td>
               </tr>
             ))}

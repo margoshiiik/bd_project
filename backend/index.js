@@ -336,40 +336,6 @@ app.post('/checks/addCheck', (req, res) =>{
   })
 })
 
-app.post('/getProductSales', (req, res) => {
-  const { start_date, end_date } = req.body;
-
-  const sql = `
-    SELECT p.product_name, SUM(s.product_number) as total_product_sold
-    FROM ((\`check\` ch JOIN sale s ON ch.check_number = s.check_number) JOIN store_product sp ON sp.UPC = s.UPC) JOIN product p ON sp.id_product = p.id_product
-    WHERE ch.print_date BETWEEN ? AND ?
-    GROUP BY p.id_product;
-  `;
-  const values = [start_date, end_date];
-
-  db.query(sql, values, (err, data) => {
-    if (err) return res.status(500).json(err);
-    return res.status(200).json(data);
-  });
-});
-
-app.post('/getCashierSales', (req, res) => {
-  const { start_date, end_date } = req.body;
-
-  const sql = `
-    SELECT e.empl_name, e.empl_surname, SUM(ch.sum_total) as total_sales
-    FROM \`check\` ch JOIN employee e ON ch.id_employee = e.id_employee
-    WHERE ch.date BETWEEN ? AND ? AND e.empl_role = 'Cashier'
-    GROUP BY e.empl_name, e.empl_surname, e.empl_patronimic;
-  `;
-  const values = [start_date, end_date];
-
-  db.query(sql, values, (err, data) => {
-    if (err) return res.status(500).json(err);
-    return res.status(200).json(data);
-  });
-});
-
 
 ///////////////////////DELETE FUNCTIONS/////////////////////
 
@@ -476,6 +442,132 @@ app.put('/employee/updateEmployee/:employeeId', (req, res) => {
     return res.status(200).json("employee has been updated");
   });
 });
+
+
+///////////// DIFFICULT QUERIES ////////////////////
+
+app.post('/getProductSales', (req, res) => {
+  const { start_date, end_date } = req.body;
+
+  const sql = `
+    SELECT p.product_name, SUM(s.product_number) as total_product_sold
+    FROM ((\`check\` ch JOIN sale s ON ch.check_number = s.check_number) JOIN store_product sp ON sp.UPC = s.UPC) JOIN product p ON sp.id_product = p.id_product
+    WHERE ch.print_date BETWEEN ? AND ?
+    GROUP BY p.id_product;
+  `;
+  const values = [start_date, end_date];
+
+  db.query(sql, values, (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.status(200).json(data);
+  });
+});
+
+app.get('/getCustomersAllCategories', (req, res) => {
+  const sql = `
+    SELECT cc.*
+    FROM customer_card cc
+    WHERE NOT EXISTS (
+             SELECT c.category_number
+             FROM category c
+             WHERE NOT EXISTS (
+                         SELECT ch.card_number
+                         FROM ((\`check\` ch JOIN sale s ON ch.check_number = s.check_number) JOIN                                                        
+                         store_product sp ON s.UPC = sp.UPC) JOIN product p 
+                        ON sp.id_product = p.id_product
+                        WHERE ch.card_number = cc.card_number AND p.category_number =                          
+                        c.category_number
+              )
+    );
+  `;
+
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.status(200).json(data);
+  });
+});
+
+
+app.post('/getCashierSales', (req, res) => {
+  const { start_date, end_date } = req.body;
+
+  const sql = `
+    SELECT e.empl_name, e.empl_surname, SUM(ch.sum_total) as total_sales
+    FROM \`check\` ch JOIN employee e ON ch.id_employee = e.id_employee
+    WHERE ch.date BETWEEN ? AND ? AND e.empl_role = 'Cashier'
+    GROUP BY e.empl_name, e.empl_surname, e.empl_patronimic;
+  `;
+  const values = [start_date, end_date];
+
+  db.query(sql, values, (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.status(200).json(data);
+  });
+});
+
+app.get('/getCustomersAllProducts/:category_number', (req, res) => {
+  const { category_number } = req.params;
+  const sql = `
+    SELECT cc.*
+    FROM customer_card cc
+    WHERE NOT EXISTS (
+             SELECT p.id_product
+             FROM product p
+             WHERE p.category_number = ? AND NOT EXISTS (
+                         SELECT ch.card_number
+                         FROM \`check\` ch JOIN sale s ON ch.check_number = s.check_number JOIN store_product sp ON s.UPC = sp.UPC
+                         WHERE ch.card_number = cc.card_number AND sp.id_product = p.id_product
+      )
+    );
+  `;
+
+  db.query(sql, [category_number], (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.status(200).json(data);
+  });
+});
+
+
+app.get("/totalQuantityValuePerCategory", async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const result = await db.query(
+        `SELECT c.category_name, SUM(s.product_number) AS total_quantity, SUM(s.product_number * sp.selling_price) AS total_value
+       FROM ((Check ch JOIN Sale s ON ch.check_number = s.check_number) JOIN Store_Product sp ON sp.UPC = s.UPC JOIN Product p ON sp.id_product = p.id_product) JOIN Category c ON p.category_number = c.category_number
+       WHERE ch.date BETWEEN $1 AND $2
+       GROUP BY c.category_name;`,
+        [startDate, endDate]
+    );
+    res.send(result.rows);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal server error");
+  }
+});
+
+app.get('/cashiersSoldAllPromotionalProducts', async (req, res) => {
+  try {
+    const query = `
+      SELECT e.*
+      FROM Employee e
+      WHERE e.empl_role = 'Cashier' AND NOT EXISTS (
+        SELECT sp.UPC_prom
+        FROM Store_Product sp
+        WHERE sp.promotional_product AND NOT EXISTS (
+          SELECT ch.id_employee
+          FROM Check ch JOIN Sale s ON ch.check_number = s.check_number
+          WHERE ch.id_employee = e.id_employee AND s.UPC = sp.UPC
+        )
+      );
+    `;
+    const [rows] = await db.query(query);
+    res.send(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error executing the query');
+  }
+});
+
 
 
 const PORT = 3001

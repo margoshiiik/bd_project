@@ -4,7 +4,7 @@ import Menu from "./Menu";
 import AddProduct from "./addingForms/addProduct";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import ProductSales from './ProductSales';
+import ProductSales from './additionalQueries/ProductSales';
 
 
 export default function Products({user}) {

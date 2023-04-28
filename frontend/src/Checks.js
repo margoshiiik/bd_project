@@ -4,13 +4,11 @@ import Menu from "./Menu";
 import AddCheck from "./addingForms/addCheck";
 import 'jspdf-autotable';
 import jsPDF from 'jspdf';
-import CashierSales from './CashierSales';
 
 export default function Checks({user}) {
 
     const [checks, setChecks] = useState(null); 
     const [addIsClicked, setAddisClicked] = useState(false);
-    const [showCashierSales, setShowCashierSales] = useState(false);
 
 
     const showAll = () => {
@@ -91,7 +89,6 @@ export default function Checks({user}) {
     
     return(
         <div>
-            {showCashierSales && <CashierSales />}
             <h1 className="text-center mt-3">Checks</h1>
             {(addIsClicked) ? <AddCheck /> : null }
     {user === 'cashier' ?  <div className="d-flex justify-content-around"><button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 btn-block">Add</button></div> : null }
@@ -101,7 +98,6 @@ export default function Checks({user}) {
                 <input type="text" className="form-control" id='findByNumber' placeholder="Search by Check Number"/>  
                 <button className="btn btn-outline-secondary" type="button" onClick={findByNumber}>Search</button>
                 <button type="button" onClick={generatePDF} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Print</button>
-                <button type="button" onClick={() => setShowCashierSales(!showCashierSales)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Cashier Sales</button>
             </div>
 
             <table className="table mt-3 table-striped">

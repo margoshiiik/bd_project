@@ -3,13 +3,17 @@ import axios from 'axios'
 import Menu from "./Menu";
 import AddCategory from "./addingForms/AddCategory";
 import jsPDF from 'jspdf';
-
+import CustomersAllProducts from './additionalQueries/CustomersAllProducts';
+import TotalQuantityValuePerCategory from "./additionalQueries/TotalQuantityValuePerCategory";
 export default function Category({user}) {
 
     const [categories, setCategories] = useState(null); 
-    const [addIsClicked, setAddisClicked] = useState(false)
+    const [addIsClicked, setAddisClicked] = useState(false);
+    const [showCustomersAllProducts, setShowCustomersAllProducts] = useState(false);
+    const [categoryNumber, setCategoryNumber] = useState('');
+    const [showTotalQuantityValuePerCategory, setShowTotalQuantityValuePerCategory] = useState(false);
 
-const generatePDF = () => {
+    const generatePDF = () => {
     const doc = new jsPDF();
 
     let startY = 10;
@@ -75,8 +79,6 @@ const generatePDF = () => {
 
 
 
-
-
       const showAll = () => {
         axios.get('http://localhost:3001/getAllCategories')
         .then(res => setCategories(res.data))
@@ -98,7 +100,8 @@ const generatePDF = () => {
     if(categories) return(
         
         <div>
-           
+            {showCustomersAllProducts && <CustomersAllProducts categoryNumber={categoryNumber} />}
+            {showTotalQuantityValuePerCategory && <TotalQuantityValuePerCategory />}
             <h1 className="text-center mt-3">Categories</h1>
             {(addIsClicked) ? <AddCategory /> : null }
             <div className="menu mt-3 d-flex justify-content-center">
@@ -106,6 +109,8 @@ const generatePDF = () => {
                 {user === 'manager' ?  <button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Add</button> : null }
                 <button type="button" onClick={sortByName} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Sort by Name</button>
                 <button type="button" onClick={generatePDF} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Print</button>
+                <button type="button" onClick={() => setShowCustomersAllProducts(!showCustomersAllProducts)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Customers All Products in Category</button>
+                <button type="button" onClick={() => setShowTotalQuantityValuePerCategory(!showTotalQuantityValuePerCategory)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Total Quantity & Value</button>
             </div>
             
             <table className="table mt-3 table-striped">
@@ -123,6 +128,7 @@ const generatePDF = () => {
                 <td>
                 {user === 'manager' ? (<div><button type="button" className="btn btn-warning" onClick={updateCategory} name={el.category_number}>Update</button>
                 <button type="button" className="btn btn-danger" onClick={deleteCategory} name={el.category_number}>Delete</button></div>) : null}
+                    <button type="button" className="btn btn-info" onClick={() => {setShowCustomersAllProducts(true);setCategoryNumber(el.category_number);}}>Show Products</button>
                 </td>
                 </tr>
                   

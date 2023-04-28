@@ -5,13 +5,16 @@ import AddEmployee from "./addingForms/addEmployee";
 import './app.css'
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import CashierSales from "./additionalQueries/CashierSales";
+import CashiersSoldAllPromotionalProducts from './CashiersSoldAllPromotionalProducts';
 
 export default function Employee({user}) {
 
     const [employees, setEmployees] = useState(null); 
     const [addIsClicked, setAddisClicked] = useState(false)
+    const [showCashierSales, setShowCashierSales] = useState(false);
+    const [showCashiersSoldAllPromotionalProducts, setShowCashiersSoldAllPromotionalProducts] = useState(false);
 
-   
     const sortByName = (e) => {
         e.preventDefault();
         
@@ -155,9 +158,10 @@ const generatePDF = () => {
     
 
     if(employees) return(
-        
+
         <div>
-            
+            {showCashierSales && <CashierSales />}
+            {showCashiersSoldAllPromotionalProducts && <CashiersSoldAllPromotionalProducts />}
             <h1 className="text-center mt-3">Employees</h1>
             {(addIsClicked) ? <AddEmployee /> : null }
             <div className="menu mt-3 d-flex justify-content-center">
@@ -166,6 +170,8 @@ const generatePDF = () => {
                 <button type="button" onClick={sortByName} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Sort by Surname</button>
                 <button type="button" onClick={showCahiers} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Cashiers</button>
                 <button type="button" onClick={generatePDF} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Print</button>
+                <button type="button" onClick={() => setShowCashierSales(!showCashierSales)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Cashier Sales</button>
+                <button type="button" onClick={() => setShowCashiersSoldAllPromotionalProducts(!showCashiersSoldAllPromotionalProducts)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Cashiers Sold All Promotional Products</button>
             </div>
 
             <div className="input-group mb-3 mt-3 finder">

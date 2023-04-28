@@ -3,11 +3,13 @@ import axios from 'axios'
 import Menu from "./Menu";
 import AddCustomer from "./addingForms/addCustomer";
 import 'jspdf-autotable';
+import CustomersAllCategories from './additionalQueries/CustomersAllCategories';
 import jsPDF from 'jspdf';
 
 export default function Customers() {
   const [customers, setCustomers] = useState(null);
   const [addIsClicked, setAddisClicked] = useState(false);
+  const [showCustomersAllCategories, setShowCustomersAllCategories] = useState(false);
 
   const deleteCustomer = (e) => {
     e.preventDefault();
@@ -143,7 +145,7 @@ export default function Customers() {
             
         
         <div>
-          
+            {showCustomersAllCategories && <CustomersAllCategories />}
             <h1 className="text-center mt-3">Customers</h1>
             {(addIsClicked) ? <AddCustomer /> : null }
 
@@ -152,6 +154,7 @@ export default function Customers() {
                 <button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Add</button>
                 <button type="button" onClick={sortByName} className="btn btn-info btn-lg mt-3 btn-block ms-3">Sort by surname</button>
                 <button type="button" onClick={generatePDF} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Print</button>
+                <button type="button" onClick={() => setShowCustomersAllCategories(!showCustomersAllCategories)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Customers All Categories</button>
             </div>
 
             <div className="input-group mb-3 mt-3 finder">
