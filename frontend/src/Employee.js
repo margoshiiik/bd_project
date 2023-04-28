@@ -3,8 +3,10 @@ import axios from 'axios'
 import Menu from "./Menu";
 import AddEmployee from "./addingForms/addEmployee";
 import './app.css'
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-export default function Employee() {
+export default function Employee({user}) {
 
     const [employees, setEmployees] = useState(null); 
     const [addIsClicked, setAddisClicked] = useState(false)
@@ -30,7 +32,6 @@ export default function Employee() {
 
         try {
           axios.delete(`http://localhost:3001/employee/deleteEmployee/${employeeId}`)
-          console.log('super!')
           let employees2 =  employees.filter(object => {
             return object.id_employee != employeeId;
           });
@@ -39,6 +40,48 @@ export default function Employee() {
           console.log(err.response.data)
       }
       }
+
+
+      const updateEmployee = (e) => {
+        e.preventDefault();
+        const employeeId = e.target.name;
+
+        console.log(document.getElementById(`birthday${employeeId}`).innerText)
+
+        const empl_surname = document.getElementById(`employeeSurname${employeeId}`).value;
+        const empl_name = document.getElementById(`employeeFirstname${employeeId}`).value;
+        const empl_patronymic = document.getElementById(`employeePatronymic${employeeId}`).value;
+        const date_of_birth = new Date(document.getElementById(`birthday${employeeId}`).innerText).toISOString().substring(0, 10);
+        const date_of_start = new Date(document.getElementById(`dateOfStart${employeeId}`).innerText).toISOString().substring(0, 10);
+        const empl_role = document.getElementById(`role${employeeId}`).value;
+        const salary = parseInt(document.getElementById(`employeeSalary${employeeId}`).value);
+        const phone_number = document.getElementById(`employeephone${employeeId}`).value;
+        const city = document.getElementById(`employeeCity${employeeId}`).value;
+        const street = document.getElementById(`employeeStreet${employeeId}`).value;
+        const zip_code = document.getElementById(`employeeZip${employeeId}`).value;
+
+
+
+        try {
+          axios.put(`http://localhost:3001/employee/updateEmployee/${employeeId}`, {
+            empl_surname,
+            empl_name,
+            empl_patronymic,
+            empl_role,
+            salary,
+            date_of_birth,
+            date_of_start,
+            phone_number,
+            city,
+            street,
+            zip_code,
+          }).then((response) => {
+            console.log(response.data);
+          });
+        } catch (err) {
+          console.log(err.response.data);
+        }
+      };
 
 
       const findBySurname = (e) => {
@@ -68,19 +111,61 @@ export default function Employee() {
         .catch(err => console.log(err))
       }
 
+const generatePDF = () => {
+  const doc = new jsPDF();
+  doc.setFontSize(12);
+  doc.text('Employee Report', 14, 15);
+
+  const headers = [
+    'Id', 'Surname', 'Name', 'Patronymic', 'Role', 'Salary', 'Birth', 'Start', 'Number', 'City', 'Street', 'Zip code'
+  ];
+
+  const data = employees.map(employee => {
+    return [
+      employee.id_employee,
+      employee.empl_surname,
+      employee.empl_name,
+      employee.empl_patronymic,
+      employee.empl_role,
+      employee.salary,
+      employee.date_of_birth,
+      employee.date_of_start,
+      employee.phone_number,
+      employee.city,
+      employee.street,
+      employee.zip_code
+    ];
+  });
+
+  doc.autoTable({
+    head: [headers],
+    body: data,
+    startY: 20,
+    styles: {
+      halign: 'center',
+      valign: 'middle',
+      fontSize: 10,
+      cellPadding: 3,
+    },
+  });
+
+  doc.save('employee_report.pdf');
+};
+
     
 
     if(employees) return(
         
         <div>
-            <Menu />
+            
             <h1 className="text-center mt-3">Employees</h1>
             {(addIsClicked) ? <AddEmployee /> : null }
             <div className="menu mt-3 d-flex justify-content-center">
                 <button type="button" onClick={showAll} className="btn btn-info btn-lg mt-3 btn-block">Show All</button>
-                <button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Add</button>
+               {user === 'manager' ? <button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Add</button> : null} 
                 <button type="button" onClick={sortByName} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Sort by Surname</button>
                 <button type="button" onClick={showCahiers} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Cashiers</button>
+                <button type="button" onClick={generatePDF} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Print</button>
             </div>
 
             <div className="input-group mb-3 mt-3 finder">
@@ -112,19 +197,22 @@ export default function Employee() {
                 {employees.map(el => 
                 <tr key={el.id_employee}>
                 <th scope="row">{el.id_employee}</th>
-                <td>{el.empl_surname}</td>
-                <td>{el.empl_name}</td>
-                <td>{el.empl_patronymic}</td>
-                <td>{el.empl_role}</td>
-                <td>{el.salary}</td>
-                <td>{el.date_of_birth}</td>
-                <td>{el.date_of_start}</td>
-                <td>{el.phone_number}</td>
-                <td>{el.city}</td>
-                <td>{el.street}</td>
-                <td>{el.zip_code}</td>
-                <td><button type="button" className="btn btn-warning">Update</button>
-                <button type="button" className="btn btn-danger ms-3" name={el.id_employee} onClick={deleteEmployee}>Delete</button></td>
+                <td><input type="text" className="form-control" id={`employeeSurname${el.id_employee}`} placeholder={el.empl_surname}/></td>
+                <td><input type="text" className="form-control" id={`employeeFirstname${el.id_employee}`} placeholder={el.empl_name}/></td>
+                <td><input type="text" className="form-control" id={`employeePatronymic${el.id_employee}`} placeholder={el.empl_patronymic}/></td>
+                <td><input type="text" className="form-control" id={`role${el.id_employee}`} placeholder={el.empl_role}/></td>
+                <td><input type="text" className="form-control" id={`employeeSalary${el.id_employee}`} placeholder={el.salary}/></td>
+                <td id={`birthday${el.id_employee}`} value={el.date_of_birth}>{el.date_of_birth}</td>
+                <td id={`dateOfStart${el.id_employee}`}>{el.date_of_start}</td>
+                <td><input type="text" className="form-control" id={`employeephone${el.id_employee}`} placeholder={el.phone_number}/></td>
+                <td><input type="text" className="form-control" id={`employeeCity${el.id_employee}`} placeholder={el.city}/></td>
+                <td><input type="text" className="form-control" id={`employeeStreet${el.id_employee}`} placeholder={el.street}/></td>
+                <td><input type="text" className="form-control" id={`employeeZip${el.id_employee}`} placeholder={el.zip_code}/></td>
+                <td>
+                  {user === 'manager' ? (<div><button type="button" className="btn btn-warning"  name={el.id_employee} onClick={updateEmployee}>Update</button>
+                  <button type="button" className="btn btn-danger ms-3" name={el.id_employee} onClick={deleteEmployee}>Delete</button></div>) : null}
+                  
+                </td>
                 </tr>
                   
                 )}

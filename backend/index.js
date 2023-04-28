@@ -8,16 +8,7 @@ app.use(cors());
 
 app.use(bodyParser.json());
 
-const checkAccess = (requiredRole) => (req, res, next) => {
-  // Replace this with your actual token verification and role extraction logic
-  const userRole = req.headers['x-user-role'];
 
-  if (userRole === requiredRole) {
-    next();
-  } else {
-    res.status(403).json({ error: 'Forbidden' });
-  }
-};
 
 //////////////////GETERS//////////////////////////////////
 
@@ -269,7 +260,7 @@ app.get('/checks/findByNumber/:checkNumber', (req, res) =>{
 
 ////////////////ADD FUNCTION//////////////////////////////////////// 
 
-app.post('/employee/addEmployee', checkAccess('manager'), (req, res) =>{
+app.post('/employee/addEmployee', (req, res) =>{
 
 console.log(req.body)
  const sql = "INSERT INTO employee (`id_employee`, `empl_surname`, `empl_name`, `empl_patronymic`, `empl_role`, `salary`, `date_of_birth`, `date_of_start`, `phone_number`, `city`, `street`, `zip_code`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -336,13 +327,48 @@ app.post('/checks/addCheck', (req, res) =>{
 
   console.log(req.body)
 
-  const sql = "INSERT INTO `check` (`check_number`, `id_employee`, `card_number`, `sum_total`, `vat`) VALUES (?, ?, ?, ?, ?);"
-  const values = [req.body.check_number, req.body.id_employee, req.body.card_number, req.body.sum_total, req.body.vat]
+
+  const sql = "INSERT INTO `check` (`check_number`, `id_employee`, `card_number`, `print_date`, `sum_total`, `vat`) VALUES (?, ?, ?, ?, ?);"
+  const values = [req.body.check_number, req.body.id_employee, req.body.card_number, req.body.date, req.body.sum_total, req.body.vat]
   db.query(sql, values, (err, data) => {
     if(err) return res.status(500).json(err); 
-    return res.status(200).json("customer has been added")
+    return res.status(200).json("check has been added")
   })
 })
+
+app.post('/getProductSales', (req, res) => {
+  const { start_date, end_date } = req.body;
+
+  const sql = `
+    SELECT p.product_name, SUM(s.product_number) as total_product_sold
+    FROM ((\`check\` ch JOIN sale s ON ch.check_number = s.check_number) JOIN store_product sp ON sp.UPC = s.UPC) JOIN product p ON sp.id_product = p.id_product
+    WHERE ch.print_date BETWEEN ? AND ?
+    GROUP BY p.id_product;
+  `;
+  const values = [start_date, end_date];
+
+  db.query(sql, values, (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.status(200).json(data);
+  });
+});
+
+app.post('/getCashierSales', (req, res) => {
+  const { start_date, end_date } = req.body;
+
+  const sql = `
+    SELECT e.empl_name, e.empl_surname, SUM(ch.sum_total) as total_sales
+    FROM \`check\` ch JOIN employee e ON ch.id_employee = e.id_employee
+    WHERE ch.date BETWEEN ? AND ? AND e.empl_role = 'Cashier'
+    GROUP BY e.empl_name, e.empl_surname, e.empl_patronimic;
+  `;
+  const values = [start_date, end_date];
+
+  db.query(sql, values, (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.status(200).json(data);
+  });
+});
 
 
 ///////////////////////DELETE FUNCTIONS/////////////////////
@@ -422,6 +448,34 @@ app.delete('/productsInShop/deleteProductInShop/:upc', (req, res) => {
 })
 
 //////////////////////////END DELETE////////////////////////////
+
+
+app.put('/category/updateCategory/:category_number', (req, res) => {
+  console.log(req.params.category_number);
+  console.log(req.body.category_name);
+
+  const q = "UPDATE category SET category_name = ? WHERE category_number = ?";
+
+  db.query(q, [req.body.category_name, req.params.category_number], (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.status(200).json("category has been updated");
+  });
+});
+
+
+app.put('/employee/updateEmployee/:employeeId', (req, res) => {
+  console.log(req.params.employeeId);
+  console.log(req.body);
+
+  const q = "UPDATE employee SET empl_surname = ?, empl_name = ?, empl_patronymic = ?, empl_role = ?, salary = ?, date_of_birth = ?, date_of_start = ?, phone_number = ?, city = ?, street = ?, zip_code = ? WHERE id_employee = ?";
+
+  const values = [req.body.empl_surname, req.body.empl_name, req.body.empl_patronymic, req.body.empl_role, req.body.salary, req.body.date_of_birth, req.body.date_of_start, req.body.phone_number, req.body.city, req.body.street, req.body.zip_code, req.params.employeeId];
+
+  db.query(q, values, (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.status(200).json("employee has been updated");
+  });
+});
 
 
 const PORT = 3001

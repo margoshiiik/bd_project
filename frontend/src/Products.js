@@ -2,12 +2,18 @@ import { useEffect, useState } from "react"
 import axios from 'axios'
 import Menu from "./Menu";
 import AddProduct from "./addingForms/addProduct";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import ProductSales from './ProductSales';
 
-export default function Products() {
+
+export default function Products({user}) {
 
     const [products, setProducts] = useState(null); 
     const [categories, setCategories] = useState(null); 
     const [addIsClicked, setAddisClicked] = useState(false)
+    const [showProductSales, setShowProductSales] = useState(false);
+
 
     useEffect(() => {
         axios.get('http://localhost:3001/getAllCategories')
@@ -88,19 +94,35 @@ export default function Products() {
 
       }
 
+      const generatePDF = () => {
+        const doc = new jsPDF();
+        const tableHeaders = ['Id', 'Category Number', 'Name', 'Description'];
+        const tableData = products.map(el => [el.id_product, el.category_number, el.product_name, el.characteristics]);
+
+        doc.autoTable({
+          head: [tableHeaders],
+          body: tableData,
+          startY: 10,
+          margin: { top: 10 },
+        });
+
+        doc.save('product_report.pdf');
+      };
+
 
     
-    if(products && categories) return(
-        
-        <div>
-            <Menu />
-            <h1 className="text-center mt-3">Products</h1>
-            {(addIsClicked) ? <AddProduct /> : null }
+  if (products && categories) return (
+    <div>
+      {showProductSales && <ProductSales user={user} />}
+
+      <h1 className="text-center mt-3">Products</h1>
+      {(addIsClicked) ? <AddProduct /> : null}
             <div className="menu mt-3 d-flex justify-content-center">
                 <button type="button" onClick={showAll} className="btn btn-info btn-lg mt-3 btn-block">Show All</button>
-                <button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Add</button>
+              {user === 'manager' ?  <button type="button" onClick={() => setAddisClicked(!addIsClicked)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Add</button> : null }
                 <button type="button" onClick={sortByName} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Sort by Name</button>
-                
+                <button type="button" onClick={generatePDF} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Print</button>
+                <button type="button" onClick={() => setShowProductSales(!showProductSales)} className="btn btn-info btn-lg mt-3 ms-3 btn-block">Product Sales</button>
             </div>
 
             <div className="d-flex justify-content-center mt-3">
@@ -135,13 +157,15 @@ export default function Products() {
                 <td>{el.category_number}</td>
                 <td>{el.product_name}</td>
                 <td>{el.characteristics}</td>
-                <td><button type="button" className="btn btn-warning">Update</button>
-                <button type="button" className="btn btn-danger ms-3" onClick={deleteProduct} name={el.id_product}>Delete</button></td>
+                <td>
+                {user === 'manager' ? (<div><button type="button" className="btn btn-warning">Update</button>
+                                                            <button type="button" className="btn btn-danger ms-3" onClick={deleteProduct} name={el.id_product}>Delete</button></div>) : null}
+                </td>
                 </tr> 
                 )}
             </tbody>
             </table>
         </div>
-    ) 
+    );
     else showAll();
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 
 export default function AddEmployee() {
 
-    const [employees, setEmployees] = useState(null); 
+    const [employees, setEmployees] = useState(null);
     console.log(employees)
 
     useEffect(() => {
@@ -14,15 +14,15 @@ export default function AddEmployee() {
     }, [])
 
 
-    const addEmployee = (e) => {
+    const addEmployee = async (e) => {
         e.preventDefault();
-        
-        const id_employee = (employees.length +1).toString(); 
+
+        const id_employee = Date.now().toString();
         const surname = document.getElementById('employeeSurname').value;
         const name = document.getElementById('employeeFirstname').value;
         const patronymic = document.getElementById('employeePatronymic').value;
-        const birthday = new Date(document.getElementById('birthday').value);
-        const dateOfStart = new Date(document.getElementById('dateOfStart').value);
+        const birthday = new Date(document.getElementById('birthday').value).toISOString().substring(0, 10);
+        const dateOfStart = new Date(document.getElementById('dateOfStart').value).toISOString().substring(0, 10);;
         const role = document.getElementById('role').value;
         const employeeSalary = parseInt(document.getElementById('employeeSalary').value);
         const phone_number = document.getElementById('employeephone').value;
@@ -44,26 +44,30 @@ export default function AddEmployee() {
             zip_code: employeeZip
           };
         console.log(values)
-        
-        try {
-            axios.post(`http://localhost:3001/employee/addEmployee`, values);
-        } catch(err){
-            console.log(err)
-        }
 
+          try {
+            const response = await axios.post("http://localhost:3001/employee/addEmployee", values);
+            if (response.status === 200) {
+              console.log("Employee added successfully");
+            } else {
+              console.log("Error adding employee: ", response.status);
+            }
+          } catch (err) {
+            console.log(err);
+          }
       }
 
 if(employees !== null) {
     return (
-        <div className='form'> 
+        <div className='form'>
         <form>
-            
-            
+
+
             <input type="text" className="form-control mt-3" id='employeeSurname' placeholder="Surname" required/>
-            
-    
+
+
             <input type="text" className="form-control mt-3" id='employeeFirstname' placeholder="First name"  required/>
-            
+
 
             <input type="text" className="form-control mt-3" id='employeePatronymic' placeholder="Patronymic" required/>
 
@@ -74,7 +78,7 @@ if(employees !== null) {
             </select>
 
             <input type="number" className="form-control mt-3" id='employeeSalary'  placeholder="Salary" required/>
-            
+
             <div className='mt-3'>
             <label>Birthday:</label>
             <input type="date" id="birthday" name="birthday" className='ms-5'/>
@@ -92,8 +96,8 @@ if(employees !== null) {
             <input type="text" className="form-control mt-3" id='employeeStreet'  placeholder="Street" required/>
 
             <input type="text" className="form-control mt-3" id='employeeZip' placeholder="Zip code" required/>
-        
-    
+
+
             <button className="btn btn-primary mt-3" type="submit" onClick={addEmployee}>Add employee</button>
 </form>
       </div>

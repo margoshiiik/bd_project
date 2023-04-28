@@ -1,119 +1,75 @@
 import {
-    createBrowserRouter,
-    RouterProvider,
+    BrowserRouter as Router,
     Route,
-    Outlet,
     Navigate,
     Routes
-} from "react-router-dom";
-import Login from "./login/Login";
-import Category from './Category';
-import Employee from './Employee';
-import Products from './Products';
-import Checks from './Checks';
-import Customers from './Customers';
-import Menu from './Menu';
-import ProductsInTheShop from './ProductsInTheShop';
-import {useState} from "react";
-
-const userRoles = {
+  } from "react-router-dom";
+  import Login from "./login/Login";
+  import Category from './Category';
+  import Employee from './Employee';
+  import Products from './Products';
+  import Checks from './Checks';
+  import Customers from './Customers';
+  import Menu from './Menu';
+  import ProductsInTheShop from './ProductsInTheShop';
+  import { useState } from "react";
+  
+  const userRoles = {
     manager: {
-        category: true,
-        employee: true,
-        products: true,
-        checks: false,
-        customers: true,
-        productsInShop: true,
+      category: true,
+      employee: true,
+      products: true,
+      checks: true,
+      customers: true,
+      productsInShop: true,
     },
     cashier: {
-        category: false,
-        employee: false,
-        products: false,
-        checks: true,
-        customers: false,
-        productsInShop: true,
+      category: true,
+      employee: true,
+      products: true,
+      checks: true,
+      customers: true,
+      productsInShop: true,
     },
-};
-
-function App() {
+  };
+  
+  function App() {
     const [user, setUser] = useState(localStorage.getItem("userRole") || null);
-
+  
     const handleLogout = () => {
-        setUser(null);
-        localStorage.removeItem("userRole");
+      setUser(null);
+      localStorage.removeItem("userRole");
+    };
+  
+    const hasAccess = (resource) => {
+      if (!user) return false;
+      return userRoles[user][resource] || false;
     };
 
-
-    const hasAccess = (path) => {
-        if (!user) return false;
-        const resource = path.replace(/^\//, '');
-        return userRoles[user][resource] || false;
-    };
-
-    const router = createBrowserRouter([
-        {
-            path: "/",
-            element: user ? <Menu onLogout={handleLogout}/> : <Login onLogin={(role) => {
-                setUser(role);
-                localStorage.setItem("userRole", role);
-            }}/>,
-            children: [
-                {
-                    path: "*",
-                    element: (
-                        <Routes>
-                            <ProtectedRoute
-                                path="category"
-                                hasAccess={hasAccess}
-                                element={<Category/>}
-                            />
-                            <ProtectedRoute
-                                path="employee"
-                                hasAccess={hasAccess}
-                                element={<Employee/>}
-                            />
-                            <ProtectedRoute
-                                path="products"
-                                hasAccess={hasAccess}
-                                element={<Products/>}
-                            />
-                            <ProtectedRoute
-                                path="checks"
-                                hasAccess={hasAccess}
-                                element={<Checks/>}
-                            />
-                            <ProtectedRoute
-                                path="customers"
-                                hasAccess={hasAccess}
-                                element={<Customers/>}
-                            />
-                            <ProtectedRoute
-                                path="productsInShop"
-                                hasAccess={hasAccess}
-                                element={<ProductsInTheShop/>}
-                            />
-                        </Routes>
-                    ),
-                },
-            ],
-        },
-    ]);
-
+    console.log(user);
+  
     return (
-        <div className="App">
-            <RouterProvider router={router}>
-                <Outlet/>
-            </RouterProvider>
-        </div>
+      <div className="App">
+        <Router>
+          {user && <Menu user={user} onLogout={handleLogout} />}
+          <Routes>
+            <Route
+              path="/"
+              element={
+                user ? <Navigate to="/employee" /> : <Navigate to="/login" />
+              }
+            />
+            <Route path="/category" element={hasAccess("category") ? <Category user={user}/> : <Navigate to="/login" />} />
+            <Route path="/employee" element={hasAccess("employee") ? <Employee user={user}/> : <Navigate to="/login" />} />
+            <Route path="/products" element={hasAccess("products") ? <Products user={user}/> : <Navigate to="/login" />} />
+            <Route path="/checks" element={hasAccess("checks") ? <Checks user={user}/> : <Navigate to="/" />} />
+            <Route path="/customers" element={hasAccess("customers") ? <Customers user={user}/> : <Navigate to="/login" />} />
+            <Route path="/productsInShop" element={hasAccess("productsInShop") ? <ProductsInTheShop user={user}/> : <Navigate to="/login" />} />
+            <Route path="/login" element={<Login onLogin={setUser} />} />
+          </Routes>
+        </Router>
+      </div>
     );
-}
-
-const ProtectedRoute = ({path, hasAccess, element}) => {
-    if (hasAccess(path)) {
-        return <Route path={path} element={element}/>;
-    } else {
-        return <Navigate to="/"/>;
-    }
-};
-
-export default App;
+  }
+  
+  export default App;

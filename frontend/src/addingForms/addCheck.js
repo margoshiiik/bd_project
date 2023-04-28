@@ -21,10 +21,11 @@ export default function AddCheck() {
         const checkNumber = document.getElementById('checkNumber').value;
         const employee = document.getElementById('selectEmployee').value
         const card_number = document.getElementById('cardnumber').value;
+        const date = new Date(Date.now()).toLocaleString().split(',')[0];
         const sum = document.getElementById('sum').value;
         const vat = sum * 0.2;
 
-        const values = {check_number: checkNumber, id_employee: employee, card_number: card_number, sum_total: sum, vat:vat};
+        const values = {check_number: checkNumber, id_employee: employee, card_number: card_number, date: date, sum_total: sum, vat:vat};
         console.log(values)
         
         try {
@@ -60,7 +61,7 @@ export default function AddCheck() {
     )
     } else {
         showAllChecks(); 
-        axios.get('http://localhost:3001/getAllEmployees')
+        axios.get('http://localhost:3001/employee/getSortedCashiers')
             .then(res => setEmployees(res.data))
             .catch(err => console.log(err))
     }
